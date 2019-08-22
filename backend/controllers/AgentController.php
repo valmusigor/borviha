@@ -60,7 +60,8 @@ class AgentController extends BaseController
             'query' => Contract::find()->where(['agent_id'=>$id]),
         ]);
         $agent=$this->findModel($id);
-        if($agent->type= Agent::AGENT_OWNER){
+        
+        if($agent->type===Agent::AGENT_OWNER){
             //для поиска всех арендаторов собственника
              $dataProvider_contract_renter = new ActiveDataProvider([
             'query' => Contract::find()->where(['connection_id'=>$id]),
