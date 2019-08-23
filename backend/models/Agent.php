@@ -107,7 +107,7 @@ class Agent extends \yii\db\ActiveRecord
                     $type = $data->type;
                     return \yii\helpers\Html::tag(
                         'span',
-                        (($type===1) ? 'Cобственник' : (($type===2)? 'Арендатор':'непопределено') )
+                        (($type===1) ? 'Cобственник' : (($type===2)? 'Арендатор':'неопределено') )
                     );
                 },
             ],

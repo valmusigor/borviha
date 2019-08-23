@@ -1,7 +1,7 @@
 <?php
 use yii\bootstrap\Modal;
 use yii\helpers\Html;
-use yii\widgets\ListView;
+use yii\grid\GridView;
 use kartik\file\FileInput;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
@@ -57,15 +57,47 @@ $this->params['breadcrumbs'][] = $this->title;
         <? ActiveForm::end(); */?>
     </p>
 
-    <?php echo $this->render('_search', ['model' => $searchModel]); ?>
+    <?php //echo $this->render('_search', ['model' => $searchModel]); ?>
 
-    <?= ListView::widget([
+     <?= GridView::widget([
         'dataProvider' => $dataProvider,
-        'itemOptions' => ['class' => 'item'],
-        'itemView' => function ($model, $key, $index, $widget) {
-            return Html::a(Html::encode($model->id), ['view', 'id' => $model->id]);
-        },
-    ]) ?>
+        'filterModel' => $searchModel,
+        'columns' => [
+            ['class' => 'yii\grid\SerialColumn'],
+            'number_invoice',
+            'date_accrual',
+            
+            [ 
+                'attribute' => 'contract.number_contract',
+                'format' => 'raw',
+                'value' => function ($model, $key, $index, $column) {
+                    return \yii\helpers\Html::tag(
+                        'span',
+                        ($model->contract)?$model->contract->number_contract:''
+                    );
+                },
+            ],
+            [ 
+               'attribute' => 'contract.agent.name',
+                'format' => 'raw',
+                'value' => function ($model, $key, $index, $column) {
+                    return \yii\helpers\Html::tag(
+                        'span',
+                        ($model->contract->agent)?$model->contract->agent->name:''
+                    );
+                },
+            ],
+            'name_accrual',
+            //'units',
+            //'quantity',
+            //'price',
+            //'sum',
+            //'vat',
+            'sum_with_vat',
+
+            ['class' => 'yii\grid\ActionColumn'],
+        ],
+    ]); ?>
 
 
 </div>

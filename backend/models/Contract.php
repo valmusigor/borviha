@@ -49,7 +49,7 @@ class Contract extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'number_contract' => 'Number',
+            'number_contract' => 'Номер договора',
             'date_contract' => 'Date Contract',
             'agent_area' => 'Agent Area',
             'common_area' => 'Common Area',
@@ -87,10 +87,12 @@ class Contract extends \yii\db\ActiveRecord
     }
     public static function getContractId($agent,$contract){
         if($contract)
-        {
-            $number_contract= explode(' ',explode('№', $contract)[1])[0];
+        {   $arg=explode('№', $contract);
+            if (count($arg)>1){
+            $number_contract= explode(' ',$arg[1])[0];
             if(($contract=self::findOne(['number_contract'=>$number_contract])))
                     return $contract->id;
+            }
         }
         if(($findAgent=Agent::findOne(['name'=>$agent]))){
             return $findAgent->contracts[0]->id;

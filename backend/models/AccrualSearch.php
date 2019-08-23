@@ -18,9 +18,14 @@ class AccrualSearch extends Accrual
     {
         return [
             [['id', 'date_accrual', 'number_invoice', 'contract_id'], 'integer'],
-            [['name_accrual', 'units'], 'safe'],
+            [['name_accrual', 'units','contract.number_contract','contract.agent.name'], 'safe'],
             [['quantity', 'price', 'sum', 'vat', 'sum_with_vat'], 'number'],
         ];
+    }
+     public function attributes()
+    {
+        // делаем поле зависимости доступным для поиска
+        return array_merge(parent::attributes(), ['contract.number_contract','contract.agent.name']);
     }
 
     /**
@@ -56,21 +61,23 @@ class AccrualSearch extends Accrual
             // $query->where('0=1');
             return $dataProvider;
         }
-
+        $query->joinWith(['contract','contract.agent']);
         // grid filtering conditions
-        $query->andFilterWhere([
-            'id' => $this->id,
-            'date_accrual' => $this->date_accrual,
-            'number_invoice' => $this->number_invoice,
-            'contract_id' => $this->contract_id,
-            'quantity' => $this->quantity,
-            'price' => $this->price,
-            'sum' => $this->sum,
-            'vat' => $this->vat,
-            'sum_with_vat' => $this->sum_with_vat,
-        ]);
-
-        $query->andFilterWhere(['like', 'name_accrual', $this->name_accrual])
+//        $query->andFilterWhere([
+//            'date_accrual' => $this->date_accrual,
+//            'number_invoice' => $this->number_invoice,
+//            'contract_id' => $this->contract_id,
+//            'quantity' => $this->quantity,
+//            'price' => $this->price,
+//            'sum' => $this->sum,
+//            'vat' => $this->vat,
+//            'sum_with_vat' => $this->sum_with_vat,
+//        ]);
+//'LIKE','legals.unp',$this->getAttribute('legals.unp')
+        $query->andFilterWhere(['like', 'contracts.number_contract', $this->getAttribute('contract.number_contract')])
+              
+           ->andFilterWhere(['like', 'agents.name', $this->getAttribute('contract.agent.name')])
+            ->andFilterWhere(['like', 'name_accrual', $this->name_accrual])
             ->andFilterWhere(['like', 'units', $this->units]);
 
         return $dataProvider;

@@ -141,7 +141,7 @@ class AccrualController extends Controller
         throw new NotFoundHttpException('The requested page does not exist.');
     }
     public function actionUploadExel(){
-        $model= Infiles::findOne(5);
+        $model= Infiles::findOne(2);
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xls');
                $reader->setReadDataOnly(true);
                $spreadSheet = $reader->load(Yii::getAlias('@backend/web/uploadInvoices/').$model->file_name[0].'/'.$model->file_name);
@@ -149,8 +149,9 @@ class AccrualController extends Controller
                 foreach ($sheetData  as $key => $data){
                     if(!isset($data['A']))
                         continue;
+                     
                     $accrual=new Accrual();
-                    $accrual->date_accrual=$data[Accrual::KEY_MAPPING['data_accrual']];
+                    $accrual->date_accrual= $data[Accrual::KEY_MAPPING['date_accrual']];
                     $accrual->number_invoice=$data[Accrual::KEY_MAPPING['number_invoice']];
                     $accrual->contract_id= \backend\models\Contract::getContractId($data[Accrual::KEY_MAPPING['agent']],$data[Accrual::KEY_MAPPING['contract']]);
                     $accrual->name_accrual=$data[Accrual::KEY_MAPPING['name_accrual']];
@@ -161,9 +162,11 @@ class AccrualController extends Controller
                     $accrual->vat=$data[Accrual::KEY_MAPPING['vat']];
                     $accrual->sum_with_vat=$data[Accrual::KEY_MAPPING['sum_with_vat']];
                     if(!$accrual->save()){
-                        break;
-                        Yii::$app->session->setFlash('error', 'Ошибка в обработке строки'.$key);
+                         Yii::$app->session->setFlash('error', 'Ошибка в обработке строки'.$key);
+                      //  break;
+                       
                     }
-                }    
+                }   
+                return $this->redirect(['index']);
     }    
 }

@@ -74,7 +74,7 @@ class Accrual extends \yii\db\ActiveRecord
             'price' => 'Стоимость',
             'sum' => 'Сумма',
             'vat' => 'НДС',
-            'sum_with_vat' => 'ВСЕГО',
+            'sum_with_vat' => 'ВСЕГО, рублей',
         ];
     }
 
@@ -84,5 +84,18 @@ class Accrual extends \yii\db\ActiveRecord
     public function getContract()
     {
         return $this->hasOne(Contract::className(), ['id' => 'contract_id']);
+    }
+      public function beforeSave($insert)
+        {
+        if (parent::beforeSave($insert)) {
+            $this->date_accrual= strtotime($this->date_accrual);
+            return true;
+        }
+        return false;
+        }
+        public function afterFind()
+    {
+        parent::afterFind();
+        $this->date_accrual=date('d.m.Y', $this->date_accrual);
     }
 }
