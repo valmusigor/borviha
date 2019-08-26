@@ -2,7 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
-
+use backend\models\Accrual;
 /* @var $this yii\web\View */
 /* @var $model backend\models\Accrual */
 /* @var $form yii\widgets\ActiveForm */
@@ -18,7 +18,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'contract_id')->textInput() ?>
 
-    <?= $form->field($model, 'name_accrual')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'name_accrual')->
+            dropDownList(Accrual::NAMES_ACCRUAL, ['id' => 'type']) ?>
 
     <?= $form->field($model, 'units')->textInput(['maxlength' => true]) ?>
 

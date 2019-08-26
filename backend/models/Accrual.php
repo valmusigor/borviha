@@ -23,6 +23,19 @@ use Yii;
  */
 class Accrual extends \yii\db\ActiveRecord
 {
+    const NAMES_ACCRUAL = [
+        1 => 'Возмещение электроэнергии',
+        2 => 'Оперативно-техническое обсл. электрооборудования и электрических сетей',
+        3 => 'Вывоз и обезвреживание отходов не входящих в жилищный фонд',
+        4 => 'ТО лифта',
+        5 => 'Теплоснабжение',
+        6 => 'Дымоудаление и АПС',
+        7 => 'Круглосуточный контроль за состоянием ср-в противопож. защиты НИИ ПБ ЧС МСЧ',
+        8 => 'Водоотведение',
+        9 => 'Холодное водоснабжение',
+        10 => 'Возмещение земельного налога',
+        11=> 'Расходы ТС "Борвиха-плюс" по совместному домовладению',
+    ];
     const KEY_MAPPING = ['date_accrual'=>'C',
         'number_invoice'=>'B',
         'name_accrual'=>'M',
@@ -50,9 +63,8 @@ class Accrual extends \yii\db\ActiveRecord
     {
         return [
             [['date_accrual', 'number_invoice', 'contract_id', 'name_accrual', 'units'], 'required'],
-            [['date_accrual', 'number_invoice', 'contract_id'], 'integer'],
+            [['date_accrual', 'number_invoice', 'contract_id','name_accrual'], 'integer'],
             [['quantity', 'price', 'sum', 'vat', 'sum_with_vat'], 'number'],
-            [['name_accrual'], 'string', 'max' => 100],
             [['units'], 'string', 'max' => 10],
             [['contract_id'], 'exist', 'skipOnError' => true, 'targetClass' => Contract::className(), 'targetAttribute' => ['contract_id' => 'id']],
         ];
@@ -85,17 +97,34 @@ class Accrual extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Contract::className(), ['id' => 'contract_id']);
     }
-      public function beforeSave($insert)
+      public function beforeValidate()
         {
-        if (parent::beforeSave($insert)) {
+        if (parent::beforeValidate()) {
             $this->date_accrual= strtotime($this->date_accrual);
             return true;
         }
+        
         return false;
         }
         public function afterFind()
     {
         parent::afterFind();
         $this->date_accrual=date('d.m.Y', $this->date_accrual);
+    }
+    public static function checkExist($data) {
+        if(($model=self::find()->where(['number_invoice'=>$data[self::KEY_MAPPING['number_invoice']]])
+               ->andWhere(['date_accrual'=> strtotime($data[self::KEY_MAPPING['date_accrual']])])->andWhere(['name_accrual'=>self::convertNameAccrual($data[self::KEY_MAPPING['name_accrual']])])->one()))
+           return $model;
+        return false;
+    }
+    public static function convertNameAccrual($name){
+        if(($temp_name= explode('_', $name))){
+            foreach (self::NAMES_ACCRUAL as $key=>$value)
+                if(count ($temp_name)===1 && $temp_name[0]===$value)
+                    return $key;
+                else if(count ($temp_name)>1 && $temp_name[1]===$value)
+                    return $key;
+        }
+        return false;
     }
 }

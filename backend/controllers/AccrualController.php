@@ -36,11 +36,17 @@ class AccrualController extends Controller
      */
     public function actionIndex()
     {
+        $exist_result=null;
         $model=new Infiles();
         $searchModel = new AccrualSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
         if(Yii::$app->request->isPost){
             if($model->upload((UploadedFile::getInstance($model, 'upload_name')))){
+                if(($exist_result=$this->uploadExel($model)) && is_array($exist_result) && isset($exist_result['exist']))
+                {
+//                    print_r($exist_result);
+//                    exit();
+                }
 //               $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xls');
 //               $reader->setReadDataOnly(true);
 //               $spreadsheet = $reader->load(Yii::getAlias('@backend/web/uploadInvoices/').$model->file_name[0].'/'.$model->file_name);
@@ -57,6 +63,7 @@ class AccrualController extends Controller
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
             'model'=>$model,
+             'exist_result'=>$exist_result,
         ]);
     }
 
@@ -140,33 +147,61 @@ class AccrualController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
-    public function actionUploadExel(){
-        $model= Infiles::findOne(2);
+    protected function uploadExel($model,$start_key=1,$choose_action='default'){
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xls');
                $reader->setReadDataOnly(true);
                $spreadSheet = $reader->load(Yii::getAlias('@backend/web/uploadInvoices/').$model->file_name[0].'/'.$model->file_name);
-               $sheetData = $spreadSheet->getActiveSheet()->toArray(null, true, true, true);
-                foreach ($sheetData  as $key => $data){
-                    if(!isset($data['A']))
+               $data = $spreadSheet->getActiveSheet()->toArray(null, true, true, true);
+               for($i=$start_key;$i<count($data);$i++){
+               if(!isset($data[$i]['A']))
                         continue;
-                     
-                    $accrual=new Accrual();
-                    $accrual->date_accrual= $data[Accrual::KEY_MAPPING['date_accrual']];
-                    $accrual->number_invoice=$data[Accrual::KEY_MAPPING['number_invoice']];
-                    $accrual->contract_id= \backend\models\Contract::getContractId($data[Accrual::KEY_MAPPING['agent']],$data[Accrual::KEY_MAPPING['contract']]);
-                    $accrual->name_accrual=$data[Accrual::KEY_MAPPING['name_accrual']];
-                    $accrual->units=$data[Accrual::KEY_MAPPING['units']];
-                    $accrual->quantity=$data[Accrual::KEY_MAPPING['quantity']];
-                    $accrual->price=$data[Accrual::KEY_MAPPING['price']];
-                    $accrual->sum=$data[Accrual::KEY_MAPPING['sum']];
-                    $accrual->vat=$data[Accrual::KEY_MAPPING['vat']];
-                    $accrual->sum_with_vat=$data[Accrual::KEY_MAPPING['sum_with_vat']];
+                    if(($temp_model=Accrual::checkExist($data[$i]))){
+                        
+                        if($choose_action==='skip' && $i===$start_key)
+                            continue;
+                        else if($choose_action==='skipall')
+                            continue;
+                        else if($choose_action==='replace' && $i===$start_key )
+                            $accrual=$temp_model;
+                        else if($choose_action==='replaceall')
+                            $accrual=$temp_model;
+                        else{
+                         Yii::$app->session->setFlash('error', 'Дублирование строки'.$i);
+                         return ['exist'=>$i,'number_invoice'=>$data[$i][Accrual::KEY_MAPPING['number_invoice']],'date_accrual'=>$data[$i][Accrual::KEY_MAPPING['date_accrual']],'status'=>false];
+                        }
+                    }
+                    else $accrual=new Accrual();
+                    $accrual->date_accrual= $data[$i][Accrual::KEY_MAPPING['date_accrual']];
+                    $accrual->number_invoice=$data[$i][Accrual::KEY_MAPPING['number_invoice']];
+                    $accrual->contract_id= \backend\models\Contract::getContractId($data[$i][Accrual::KEY_MAPPING['agent']],$data[$i][Accrual::KEY_MAPPING['contract']]);
+                    $accrual->name_accrual= Accrual::convertNameAccrual($data[$i][Accrual::KEY_MAPPING['name_accrual']]);
+                    $accrual->units=$data[$i][Accrual::KEY_MAPPING['units']];
+                    $accrual->quantity=$data[$i][Accrual::KEY_MAPPING['quantity']];
+                    $accrual->price=$data[$i][Accrual::KEY_MAPPING['price']];
+                    $accrual->sum=$data[$i][Accrual::KEY_MAPPING['sum']];
+                    $accrual->vat=$data[$i][Accrual::KEY_MAPPING['vat']];
+                    $accrual->sum_with_vat=$data[$i][Accrual::KEY_MAPPING['sum_with_vat']];
                     if(!$accrual->save()){
-                         Yii::$app->session->setFlash('error', 'Ошибка в обработке строки'.$key);
-                      //  break;
-                       
+                         Yii::$app->session->setFlash('error', 'Ошибка в обработке строки'.$i);
                     }
                 }   
-                return $this->redirect(['index']);
+                return ['status'=>true];
     }    
+    public function actionContinueUnloading($choose_action,$line,$id)
+    {
+        $searchModel = new AccrualSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        if($choose_action==='skip' || $choose_action==='skipall' || $choose_action==='replace' || $choose_action==='replaceall'){
+                if(isset($id) && ($model=Infiles::findOne($id)))
+                $exist_result=$this->uploadExel($model, $line,$choose_action);
+                else $exist_result=false;
+        }
+        else $exist_result=false;
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'model'=>$model,
+             'exist_result'=>$exist_result,
+        ]);
+    }
 }

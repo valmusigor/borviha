@@ -3,10 +3,12 @@ use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use kartik\file\FileInput;
+use yii\widgets\Pjax;
 use yii\helpers\Url;
+use backend\models\Accrual;
 use yii\widgets\ActiveForm;
-use backend\assets\CommonAsset;
-CommonAsset::register($this);
+use backend\assets\AccrualAsset;
+AccrualAsset::register($this);
 /* @var $this yii\web\View */
 /* @var $searchModel backend\models\AccrualSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -64,7 +66,18 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-            'number_invoice',
+            
+            [ 
+                'attribute' => 'number_invoice',
+                'format' => 'raw',
+                'value' => function ($model, $key, $index, $column) {
+                    return \yii\helpers\Html::tag(
+                        'span',
+                        ($model->number_invoice)?$model->number_invoice:''
+                    );
+                },
+                       // 'group' => true, 
+            ],
             'date_accrual',
             
             [ 
@@ -87,7 +100,18 @@ $this->params['breadcrumbs'][] = $this->title;
                     );
                 },
             ],
-            'name_accrual',
+                        [ 
+               'attribute' => 'name_accrual',
+                'format' => 'raw',
+                'filter' => backend\models\Accrual::NAMES_ACCRUAL,
+                'value' => function ($model, $key, $index, $column) {
+                    return \yii\helpers\Html::tag(
+                        'span',
+                        backend\models\Accrual::NAMES_ACCRUAL[$model->name_accrual]
+                    );
+                },
+            ],
+            
             //'units',
             //'quantity',
             //'price',
@@ -98,6 +122,36 @@ $this->params['breadcrumbs'][] = $this->title;
             ['class' => 'yii\grid\ActionColumn'],
         ],
     ]); ?>
+    <?php 
+     if($exist_result){
+         Pjax::begin();
+         Modal::begin([
+            'header'=>($exist_result['status']==true)?'Файл успешно обработан'
+             :'Загружаемый счет №'.$exist_result['number_invoice'].' от '.$exist_result['date_accrual'].' существует',
+             'id' => 'exist',
+             'clientOptions' => ['show' => true],
+          ]);?>
+        <div class="modal-content">
+        <?php
+        if($exist_result['status']!==true){
+        echo Html::a('Заменить', ['continue-unloading?choose_action=replace&line='.$exist_result['exist'].'&id='.$model->id], ['class' => 'btn btn-warning']);
+        echo Html::a('Заменить все', ['continue-unloading?choose_action=replaceall&line='.$exist_result['exist'].'&id='.$model->id], ['class' => 'btn btn-warning']);
+        echo Html::a('Пропустить', ['continue-unloading?choose_action=skip&line='.$exist_result['exist'].'&id='.$model->id], ['class' => 'btn btn-warning']);
+        echo Html::a('Пропустить все', ['continue-unloading?choose_action=skipall&line='.$exist_result['exist'].'&id='.$model->id], ['class' => 'btn btn-warning']);
+
+        }
+        else
+        echo Html::a('Закрыть', ['index'], ['class' => 'btn btn-danger','data-pjax'=>0]);
+       ?>
+        </div>
+     <?php   
+     Modal::end();
+      Pjax::end();
+//     $this->registerJs('
+//                    jQuery("#exist").modal("show":true});
+//          ');
+     }
+    ?>
 
 
 </div>

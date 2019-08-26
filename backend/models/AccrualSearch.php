@@ -17,8 +17,8 @@ class AccrualSearch extends Accrual
     public function rules()
     {
         return [
-            [['id', 'date_accrual', 'number_invoice', 'contract_id'], 'integer'],
-            [['name_accrual', 'units','contract.number_contract','contract.agent.name'], 'safe'],
+            [['id', 'number_invoice', 'contract_id'], 'integer'],
+            [[ 'date_accrual','name_accrual', 'units','contract.number_contract','contract.agent.name'], 'safe'],
             [['quantity', 'price', 'sum', 'vat', 'sum_with_vat'], 'number'],
         ];
     }
@@ -63,21 +63,21 @@ class AccrualSearch extends Accrual
         }
         $query->joinWith(['contract','contract.agent']);
         // grid filtering conditions
-//        $query->andFilterWhere([
+        $query->andFilterWhere([
 //            'date_accrual' => $this->date_accrual,
-//            'number_invoice' => $this->number_invoice,
+ //           'number_invoice' => $this->number_invoice,
 //            'contract_id' => $this->contract_id,
 //            'quantity' => $this->quantity,
 //            'price' => $this->price,
 //            'sum' => $this->sum,
-//            'vat' => $this->vat,
+            'name_accrual' => $this->name_accrual,
 //            'sum_with_vat' => $this->sum_with_vat,
-//        ]);
+        ]);
 //'LIKE','legals.unp',$this->getAttribute('legals.unp')
         $query->andFilterWhere(['like', 'contracts.number_contract', $this->getAttribute('contract.number_contract')])
-              
+           ->andFilterWhere(['like', 'number_invoice', $this->getAttribute('number_invoice')])   
            ->andFilterWhere(['like', 'agents.name', $this->getAttribute('contract.agent.name')])
-            ->andFilterWhere(['like', 'name_accrual', $this->name_accrual])
+//            ->andFilterWhere(['like', 'name_accrual', $this->name_accrual])
             ->andFilterWhere(['like', 'units', $this->units]);
 
         return $dataProvider;
