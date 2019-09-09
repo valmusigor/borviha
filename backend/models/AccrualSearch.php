@@ -1,7 +1,6 @@
 <?php
 
 namespace backend\models;
-
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use backend\models\Accrual;
@@ -17,8 +16,8 @@ class AccrualSearch extends Accrual
     public function rules()
     {
         return [
-            [['id', 'number_invoice', 'contract_id'], 'integer'],
-            [[ 'date_accrual','name_accrual', 'units','contract.number_contract','contract.agent.name'], 'safe'],
+            [['id', 'name_accrual', 'invoice_id'], 'integer'],
+            [['units'], 'safe'],
             [['quantity', 'price', 'sum', 'vat', 'sum_with_vat'], 'number'],
         ];
     }
@@ -44,9 +43,9 @@ class AccrualSearch extends Accrual
      *
      * @return ActiveDataProvider
      */
-    public function search($params)
+    public function search($params,$invoice_id)
     {
-        $query = Accrual::find();
+        $query = Accrual::find()->where(['invoice_id'=>$invoice_id]);
 
         // add conditions that should always apply here
 
@@ -61,24 +60,19 @@ class AccrualSearch extends Accrual
             // $query->where('0=1');
             return $dataProvider;
         }
-        $query->joinWith(['contract','contract.agent']);
-        // grid filtering conditions
+          // grid filtering conditions
         $query->andFilterWhere([
-//            'date_accrual' => $this->date_accrual,
- //           'number_invoice' => $this->number_invoice,
-//            'contract_id' => $this->contract_id,
-//            'quantity' => $this->quantity,
-//            'price' => $this->price,
-//            'sum' => $this->sum,
+            'id' => $this->id,
             'name_accrual' => $this->name_accrual,
-//            'sum_with_vat' => $this->sum_with_vat,
+            'quantity' => $this->quantity,
+            'price' => $this->price,
+            'sum' => $this->sum,
+            'vat' => $this->vat,
+            'sum_with_vat' => $this->sum_with_vat,
+            'invoice_id' => $this->invoice_id,
         ]);
-//'LIKE','legals.unp',$this->getAttribute('legals.unp')
-        $query->andFilterWhere(['like', 'contracts.number_contract', $this->getAttribute('contract.number_contract')])
-           ->andFilterWhere(['like', 'number_invoice', $this->getAttribute('number_invoice')])   
-           ->andFilterWhere(['like', 'agents.name', $this->getAttribute('contract.agent.name')])
-//            ->andFilterWhere(['like', 'name_accrual', $this->name_accrual])
-            ->andFilterWhere(['like', 'units', $this->units]);
+
+        $query->andFilterWhere(['like', 'units', $this->units]);
 
         return $dataProvider;
     }

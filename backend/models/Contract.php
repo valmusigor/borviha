@@ -73,9 +73,9 @@ class Contract extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getAccruals()
+    public function getInvoices()
     {
-        return $this->hasMany(Accrual::className(), ['contract_id' => 'id']);
+        return $this->hasMany(Invoice::className(), ['contract_id' => 'id']);
     }
 
     /**

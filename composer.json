@@ -23,7 +23,9 @@
         "kartik-v/yii2-widget-datepicker": "@dev",
         "yiisoft/yii2-bootstrap4": "^2.0",
         "kartik-v/yii2-widget-fileinput": "@dev",
-        "phpoffice/phpspreadsheet": "^1.8"
+        "phpoffice/phpspreadsheet": "^1.8",
+        "mpdf/mpdf": "^8.0",
+        "jino5577/yii2-date-range-picker": "*"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

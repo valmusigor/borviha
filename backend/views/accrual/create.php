@@ -5,13 +5,12 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model backend\models\Accrual */
 
-$this->title = 'Create Accrual';
-$this->params['breadcrumbs'][] = ['label' => 'Accruals', 'url' => ['index']];
+$this->title = 'Создать начисление';
+$this->params['breadcrumbs'][] = ['label' => 'Все начисления', 'url' => ['index','invoice_id'=>$invoice_id]];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="accrual-create">
 
-    <h1><?= Html::encode($this->title) ?></h1>
 
     <?= $this->render('_form', [
         'model' => $model,

@@ -44,9 +44,18 @@ return [
             'rules' => [
             ],
         ],
+        'mailer' => [
+            'class' => 'yii\swiftmailer\Mailer',
+            'useFileTransport' => false,
+            'transport' => [
+                'class'=>'Swift_SmtpTransport',
+                'host' => 'smtp.mail.ru',
+                'username' => 'x-ray-moby@mail.ru',
+                'password' => 'vikalove13',
+                'port' => '587',
+                'encryption' => 'tls'
+            ],
+        ],
     ],
     'params' => $params,
-    'aliases'=>[
-       // '@uploadImages'=>__DIR__.'/..'.'/web/uploadImages',
-    ],
 ];

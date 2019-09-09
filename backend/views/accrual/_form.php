@@ -12,31 +12,26 @@ use backend\models\Accrual;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'date_accrual')->textInput() ?>
-
-    <?= $form->field($model, 'number_invoice')->textInput() ?>
-
-    <?= $form->field($model, 'contract_id')->textInput() ?>
 
     <?= $form->field($model, 'name_accrual')->
-            dropDownList(Accrual::NAMES_ACCRUAL, ['id' => 'type']) ?>
+            dropDownList(Accrual::NAMES_ACCRUAL, ['id' => 'name_accrual']) ?>
 
-    <?= $form->field($model, 'units')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'units')->dropDownList(Accrual::UNITS_MAPPING, ['id' => 'units']) ?> 
 
-    <?= $form->field($model, 'quantity')->textInput() ?>
+    <?= $form->field($model, 'quantity')->textInput(['id' => 'quantity']) ?>
 
-    <?= $form->field($model, 'price')->textInput() ?>
+    <?= $form->field($model, 'price')->textInput(['id' => 'price']) ?>
 
-    <?= $form->field($model, 'sum')->textInput() ?>
+    <?= $form->field($model, 'sum')->textInput(['id' => 'sum']) ?>
 
-    <?= $form->field($model, 'vat')->textInput() ?>
+    <?= $form->field($model, 'vat')->textInput(['id' => 'vat']) ?>
 
-    <?= $form->field($model, 'sum_with_vat')->textInput() ?>
+    <?= $form->field($model, 'sum_with_vat')->textInput(['id' => 'sum_with_vat']) ?>
 
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>
-
+    <?php  $this->registerJsFile('/js/depend_name_accrual_units.js')?>
 </div>

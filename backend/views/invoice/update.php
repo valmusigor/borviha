@@ -3,15 +3,16 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $model backend\models\Accrual */
+/* @var $model backend\models\Invoices */
 
-$this->title = 'Редактировать начисление: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Все начисления', 'url' => ['index', 'invoice_id' => $model->invoice_id]];
+$this->title = 'Update Invoices: ' . $model->id;
+$this->params['breadcrumbs'][] = ['label' => 'Invoices', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Update';
 ?>
-<div class="accrual-update">
+<div class="invoices-update">
 
+    <h1><?= Html::encode($this->title) ?></h1>
 
     <?= $this->render('_form', [
         'model' => $model,

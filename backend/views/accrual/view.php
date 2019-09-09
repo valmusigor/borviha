@@ -2,25 +2,24 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
-
+use backend\models\Accrual;
 /* @var $this yii\web\View */
 /* @var $model backend\models\Accrual */
 
-$this->title = $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Accruals', 'url' => ['index']];
+$this->title = 'Начисление по счету №'.$model->invoice->number_invoice.' от '.$model->invoice->date_invoice;
+$this->params['breadcrumbs'][] = ['label' => 'Счета', 'url' => ['/invoice/index']];
+$this->params['breadcrumbs'][] = ['label' => 'Все начисления', 'url' => ['index','invoice_id'=>$model->invoice_id]];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 ?>
 <div class="accrual-view">
-
-    <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
         <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
         <?= Html::a('Delete', ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
-                'confirm' => 'Are you sure you want to delete this item?',
+                'confirm' => 'Вы уверены, что хотите снесни начисление',
                 'method' => 'post',
             ],
         ]) ?>
@@ -29,11 +28,18 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
-            'id',
-            'date_accrual',
-            'number_invoice',
-            'contract_id',
-            'name_accrual',
+            
+//            'contract_id',
+ 
+            [ 
+               'attribute' => 'name_accrual',
+                'format' => 'raw',
+                'value' => function ($data) {
+                    return \yii\helpers\Html::tag(
+                        'span', Accrual::NAMES_ACCRUAL[$data->name_accrual]
+                    );
+                },
+            ],
             'units',
             'quantity',
             'price',

@@ -1,25 +1,23 @@
 <?php
 
 namespace backend\models;
-use backend\models\Contract;
+use backend\models\Invoices;
 use Yii;
 
 /**
  * This is the model class for table "accruals".
  *
  * @property int $id
- * @property int $date_accrual
- * @property int $number_invoice
- * @property int $contract_id
- * @property string $name_accrual
+ * @property int $name_accrual
  * @property string $units
  * @property double $quantity
  * @property double $price
  * @property double $sum
  * @property double $vat
  * @property double $sum_with_vat
+ * @property int $invoice_id
  *
- * @property Contracts $contract
+ * @property Invoices $invoice
  */
 class Accrual extends \yii\db\ActiveRecord
 {
@@ -35,8 +33,23 @@ class Accrual extends \yii\db\ActiveRecord
         9 => 'Холодное водоснабжение',
         10 => 'Возмещение земельного налога',
         11=> 'Расходы ТС "Борвиха-плюс" по совместному домовладению',
+        12=> 'Уборка МОП'
     ];
-    const KEY_MAPPING = ['date_accrual'=>'C',
+    const UNITS_MAPPING = [
+        1 => 'кВт.ч',
+        2 => 'м.кв',
+        3 => 'м.куб.',
+        4 => 'м.кв',
+        5 => 'Гкал',
+        6 => 'м.кв.',
+        7 => 'м.кв',
+        8 => 'м.куб',
+        9 => 'м.куб',
+        10 => 'м.кв',
+        11 => 'м.кв',
+        12 => 'м.кв',
+    ];
+    const KEY_MAPPING = ['date_invoice'=>'C',
         'number_invoice'=>'B',
         'name_accrual'=>'M',
         'units'=>'N',
@@ -48,6 +61,7 @@ class Accrual extends \yii\db\ActiveRecord
         'agent'=>'E',
         'contract'=>'G',
         ];
+    const VOCABULARY = ['rub'=>['рубль', 'рубля', 'рублей'],'kop'=>['копейка','копейки','копеек']];
     /**
      * {@inheritdoc}
      */
@@ -62,14 +76,21 @@ class Accrual extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['date_accrual', 'number_invoice', 'contract_id', 'name_accrual', 'units'], 'required'],
-            [['date_accrual', 'number_invoice', 'contract_id','name_accrual'], 'integer'],
+            [['name_accrual', 'units','invoice_id'], 'required'],
+            [['name_accrual', 'invoice_id','units'], 'integer'],
             [['quantity', 'price', 'sum', 'vat', 'sum_with_vat'], 'number'],
-            [['units'], 'string', 'max' => 10],
-            [['contract_id'], 'exist', 'skipOnError' => true, 'targetClass' => Contract::className(), 'targetAttribute' => ['contract_id' => 'id']],
+            [['invoice_id'], 'exist', 'skipOnError' => true, 'targetClass' => Invoices::className(), 'targetAttribute' => ['invoice_id' => 'id']],
+            ['name_accrual','checkUniqueForInvoice',]
         ];
     }
-
+    public function checkUniqueForInvoice($attribute,$params){
+       if(self::find()->where(['name_accrual'=> $this->name_accrual,'invoice_id'=>$this->invoice_id])->all())
+       {
+           $this->addError($attribute, 'В данном счете уже есть выбранное начисление');
+           return false;
+       }
+       return true;
+    }
     /**
      * {@inheritdoc}
      */
@@ -77,9 +98,6 @@ class Accrual extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'date_accrual' => 'Дата',
-            'number_invoice' => 'Номер счета',
-            'contract_id' => 'Номер договора',
             'name_accrual' => 'Наименование услуги',
             'units' => 'ЕдИзм',
             'quantity' => 'Кол.',
@@ -87,35 +105,16 @@ class Accrual extends \yii\db\ActiveRecord
             'sum' => 'Сумма',
             'vat' => 'НДС',
             'sum_with_vat' => 'ВСЕГО, рублей',
+            'invoice_id' => 'Номер счета',
         ];
     }
 
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getContract()
+     public function getInvoice()
     {
-        return $this->hasOne(Contract::className(), ['id' => 'contract_id']);
-    }
-      public function beforeValidate()
-        {
-        if (parent::beforeValidate()) {
-            $this->date_accrual= strtotime($this->date_accrual);
-            return true;
-        }
-        
-        return false;
-        }
-        public function afterFind()
-    {
-        parent::afterFind();
-        $this->date_accrual=date('d.m.Y', $this->date_accrual);
-    }
-    public static function checkExist($data) {
-        if(($model=self::find()->where(['number_invoice'=>$data[self::KEY_MAPPING['number_invoice']]])
-               ->andWhere(['date_accrual'=> strtotime($data[self::KEY_MAPPING['date_accrual']])])->andWhere(['name_accrual'=>self::convertNameAccrual($data[self::KEY_MAPPING['name_accrual']])])->one()))
-           return $model;
-        return false;
+        return $this->hasOne(Invoices::className(), ['id' => 'invoice_id']);
     }
     public static function convertNameAccrual($name){
         if(($temp_name= explode('_', $name))){
@@ -126,5 +125,33 @@ class Accrual extends \yii\db\ActiveRecord
                     return $key;
         }
         return false;
+    }
+    public function saveData($data,$invoice_id){
+        $index_name_units_accrual=self::convertNameAccrual(trim($data[self::KEY_MAPPING['name_accrual']]));
+        $this->name_accrual= $index_name_units_accrual;
+        $this->units=$index_name_units_accrual;
+        $this->quantity=$data[self::KEY_MAPPING['quantity']];
+        $this->price=$data[self::KEY_MAPPING['price']];
+        $this->sum=$data[self::KEY_MAPPING['sum']];
+        $this->vat=$data[self::KEY_MAPPING['vat']];
+        $this->sum_with_vat=$data[self::KEY_MAPPING['sum_with_vat']];
+        $this->invoice_id=$invoice_id;
+        if(!$accrual->save()){
+         return false;
+        }
+        return true;
+    }
+    public static function num2word($num,$words) {
+        $num=$num%100;
+        if ($num>19) { $num=$num%10; }
+        switch ($num) {
+          case 1:  { return($words[0]); }
+          case 2: case 3: case 4:  { return($words[1]); }
+          default: { return($words[2]); }
+        }
+    }
+    public static function convertFemale($str){
+        $result_str= str_replace('один', 'одна', $str);
+        return str_replace('два', 'две', $result_str);
     }
 }
