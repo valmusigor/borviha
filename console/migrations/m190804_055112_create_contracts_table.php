@@ -24,7 +24,7 @@ class m190804_055112_create_contracts_table extends Migration
         ],self::FORMAT);
         
         
-         $this->createIndex(
+        $this->createIndex(
             'idx-contracts-agent_id',
             'contracts',
             'agent_id'

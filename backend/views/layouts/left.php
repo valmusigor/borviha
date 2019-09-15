@@ -34,6 +34,7 @@
                     ['label' => 'Gii', 'icon' => 'file-code-o', 'url' => ['/gii']],
                     ['label' => 'Собственники', 'icon' => 'file-code-o', 'url' => ['/agent']],
                     ['label' => 'Счета', 'icon' => 'file-code-o', 'url' => ['/invoice']],
+                    ['label' => 'Расположение', 'icon' => 'file-code-o', 'url' => ['/coord']],
                     ['label' => 'Debug', 'icon' => 'dashboard', 'url' => ['/debug']],
                     ['label' => 'Login', 'url' => ['site/login'], 'visible' => Yii::$app->user->isGuest],
                     [

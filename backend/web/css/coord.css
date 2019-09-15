@@ -1,0 +1,11 @@
+#floor{
+    padding:5px;
+    margin-bottom:5px;
+    border-radius: 5px;
+}
+canvas
+{
+    pointer-events: none;       /* make the canvas transparent to the mouse - needed since canvas is position infront of image */
+    position: absolute;
+}
+

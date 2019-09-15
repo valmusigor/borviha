@@ -16,6 +16,9 @@ return [
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-backend',
+             'parsers' => [
+        'application/json' => 'yii\web\JsonParser',
+    ]
         ],
         'user' => [
             'identityClass' => 'common\models\User',
@@ -51,7 +54,7 @@ return [
                 'class'=>'Swift_SmtpTransport',
                 'host' => 'smtp.mail.ru',
                 'username' => 'x-ray-moby@mail.ru',
-                'password' => 'vikalove13',
+                'password' => $params['password'],
                 'port' => '587',
                 'encryption' => 'tls'
             ],

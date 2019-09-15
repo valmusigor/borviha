@@ -56,7 +56,7 @@ function sendMail(){
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
 //        mode: 'cors', // no-cors, cors, *same-origin
 //        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: 'same-origin', // include, *same-origin, omit
+   //     credentials: 'same-origin', // include, *same-origin, omit
         headers: {
 //            'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ function sendMail(){
         },
 //        redirect: 'follow', // manual, *follow, error
 ////        referrer: 'no-referrer', // no-referrer, *client
-        body: JSON.stringify({choose_invoice:choose_invoice_id}), // тип данных в body должен соответвовать значению заголовка "Content-Type"
+        body: JSON.stringify({choose_invoice:choose_invoice_id, '_csrf-backend': yii.getCsrfToken()}), // тип данных в body должен соответвовать значению заголовка "Content-Type"
     })
     .then(response => response.json())
     .then(data => console.log(JSON.stringify(data))) // JSON-строка полученная после вызова `response.json()`

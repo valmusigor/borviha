@@ -16,6 +16,14 @@ use backend\models\Accrual;
  */
 class InvoiceController extends BaseController
 {
+    public function beforeAction($action)
+{            
+    if ($action->id == 'send') {
+      //  $this->enableCsrfValidation = false;
+    }
+
+    return parent::beforeAction($action);
+}
     /**
      * {@inheritdoc}
      */
@@ -210,41 +218,37 @@ class InvoiceController extends BaseController
              'exist_result'=>$exist_result,
         ]);
     }
+    
     public function actionCreatePdf($id){
-   // $html = file_get_contents(Yii::getAlias('@backend').'/web/templates/invoice.php');
-$this->layout='main_blank';
-
-$mpdf = new \Mpdf\Mpdf([
+    $this->layout='main_blank';
+    $mpdf = new \Mpdf\Mpdf([
     // 'mode' => 'utf-8',
-    'mode' => 's',
+        'mode' => 's',
 	'margin_left' => 20,
 	'margin_right' => 15,
-	//'margin_top' => 48,
 	'margin_bottom' => 25,
 	'margin_header' => 10,
 	'margin_footer' => 10
-]);
-$mpdf->SetProtection(array('print'));
-$mpdf->SetTitle("Acme Trading Co. - Invoice");
-$mpdf->SetAuthor("Acme Trading Co.");
-$mpdf->SetWatermarkText("ТС Борвиха плюс");
-$mpdf->showWatermarkText = true;
-$mpdf->watermark_font = 'DejaVuSansCondensed';
-$mpdf->watermarkTextAlpha = 0.1;
-$mpdf->SetDisplayMode('fullpage');
-$mpdf->WriteHTML( $this->render('create-pdf',['model'=>$this->findModel($id)]));
-//$mpdf->Output(Yii::getAlias('@backend').'/web/invoices/new.pdf',\Mpdf\Output\Destination::FILE);
-//return Yii::getAlias('@backend').'/web/invoices/new.pdf';
-return (Yii::$app->controller->action->id==='create-pdf' && Yii::$app->controller->id==='invoice')?$mpdf->Output():$mpdf->Output('', 'S'); 
+    ]);
+    $mpdf->SetProtection(array('print'));
+    $mpdf->SetTitle("Acme Trading Co. - Invoice");
+    $mpdf->SetAuthor("Acme Trading Co.");
+    $mpdf->SetWatermarkText("ТС Борвиха плюс");
+    $mpdf->showWatermarkText = true;
+    $mpdf->watermark_font = 'DejaVuSansCondensed';
+    $mpdf->watermarkTextAlpha = 0.1;
+    $mpdf->SetDisplayMode('fullpage');
+    $mpdf->WriteHTML( $this->render('create-pdf',['model'=>$this->findModel($id)]));
+    return (Yii::$app->controller->action->id==='create-pdf' && Yii::$app->controller->id==='invoice')?$mpdf->Output():$mpdf->Output('', 'S'); 
     }
+    
     public function actionSendEmail($id){
-       // $model = $this->findModel($id);
-        if($this->mailSender($id))
-           Yii::$app->session->setFlash ('success', "EMAIL SENDED"); 
-     else  Yii::$app->session->setFlash ('danger', "FAIL SENDED"); 
-     return $this->redirect(['index']);
-        
+    if($this->mailSender($id))
+        Yii::$app->session->setFlash ('success', "EMAIL SENDED"); 
+     else  Yii::$app->session->setFlash ('danger', "FAIL SENDED");  
+     return $this->redirect(['index']);    
     }
+    
     protected function mailSender($id){
        return Yii::$app->mailer->compose()
     ->setFrom('x-ray-moby@mail.ru')
@@ -257,30 +261,13 @@ return (Yii::$app->controller->action->id==='create-pdf' && Yii::$app->controlle
     }
     public function actionSend(){
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-//        $choose_invoice= json_decode(\Yii::$app->request->post(),true);
-//        foreach ($choose_invoice['choose_invoice'] as $value){
-//            $this->mailSender($value);
-//        }
-        
-        return json_encode('all right');
-//        $notary = Notary::getNotary($id);
-//        if(!$notary) return json_encode (FALSE);
-//        if($notary->status===2 || $notary->status===3){
-//            if($notary->client_id!==Yii::$app->user->identity->id && $notary->notary_id!==Yii::$app->user->identity->id)
-//            return json_encode (false);  
-//        }
-//        $messages= Messages::getMessagesByNotary($id);
-//        foreach ($messages as $message){
-//            $result[]=[
-//                'text_message'=>$message->text_message,
-//                'time_create'=>$message->time_create,
-//                'sender'=> \frontend\models\User::getUsernameById($message->sender_id),
-//            ];
-//        }
-//        if($messages){
-//            
-//            return json_encode($result); 
-//        }
-//        else json_encode (FALSE);
+        if(\Yii::$app->request->isPost){
+          $choose_invoice= \Yii::$app->request->post('choose_invoice');
+          foreach ($choose_invoice as $value){
+            $this->mailSender($value);
+          }
+        return json_encode('allright');
+        }
+        else return json_encode('atata');
     }
 }
